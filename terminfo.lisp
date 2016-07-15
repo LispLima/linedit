@@ -38,27 +38,27 @@
           set-terminal capabilities))
 
 (defvar *terminfo-directories* '("/etc/terminfo/"
-				 "/lib/terminfo/"
-				 "/usr/share/terminfo/"
-				 "/usr/share/misc/terminfo/")
+                                 "/lib/terminfo/"
+                                 "/usr/share/terminfo/"
+                                 "/usr/share/misc/terminfo/")
   "Known locations of terminfo databases.")
 
 (defvar *terminfo* nil
   "The global terminfo structure used as a default variable
-for all commands with an optional terminfo parameter.  This 
+for all commands with an optional terminfo parameter.  This
 is set any time set-terminal is called.")
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar *capabilities* (make-hash-table :size 494)))
 
 (flet ((required-argument ()
-	 (error "A required argument was not supplied.")))
+         (error "A required argument was not supplied.")))
   (defstruct (terminfo
-	       (:print-function
-		(lambda (object stream depth)
-		  (declare (ignore depth))
-		  (print-unreadable-object (object stream :type t :identity t)
-		    (format stream "~A" (first (terminfo-names object)))))))
+               (:print-function
+                (lambda (object stream depth)
+                  (declare (ignore depth))
+                  (print-unreadable-object (object stream :type t :identity t)
+                    (format stream "~A" (first (terminfo-names object)))))))
     (names (required-argument) :type list :read-only t)
     (booleans (required-argument) :type (simple-array (member t nil) (*)))
     (numbers (required-argument) :type (simple-array (signed-byte 16) (*)))
@@ -72,12 +72,12 @@ is set any time set-terminal is called.")
     (when (null whatsit)
       (error "Terminfo capability ~S doesn't exist." name))
     (if (or (null terminfo) (>= (cdr whatsit)
-				(length (funcall (car whatsit) terminfo))))
-	nil #| default |#
-	(let ((value (aref (funcall (car whatsit) terminfo) (cdr whatsit))))
-	  (if (and (numberp value) (minusp value))
-	      nil
-	      value)))))
+                                (length (funcall (car whatsit) terminfo))))
+        nil #| default |#
+        (let ((value (aref (funcall (car whatsit) terminfo) (cdr whatsit))))
+          (if (and (numberp value) (minusp value))
+              nil
+              value)))))
 
 (declaim (inline capability))
 (defun capability (name &optional (terminfo *terminfo*))
@@ -89,19 +89,19 @@ Returns nil for undefined capabilities."
 (declaim (ext:end-block))
 
 (define-compiler-macro capability (&whole form
-				   name &optional (terminfo '*terminfo*))
+                                   name &optional (terminfo '*terminfo*))
   (if (not (keywordp name))
       form
       (let ((value (gensym))
-	    (tmp (gensym)))
-	(unless (gethash name *capabilities*)
-	  (warn "Terminfo capability ~S doesn't exist." name))
-	`(let ((,value (load-time-value (cons nil nil)))
-	       (,tmp ,terminfo))
-	   (if (eq (car ,value) ,tmp)
-	       (cdr ,value)
-	       (setf (car ,value) ,tmp
-		     (cdr ,value) (%capability ,name ,tmp)))))))
+            (tmp (gensym)))
+        (unless (gethash name *capabilities*)
+          (warn "Terminfo capability ~S doesn't exist." name))
+        `(let ((,value (load-time-value (cons nil nil)))
+               (,tmp ,terminfo))
+           (if (eq (car ,value) ,tmp)
+               (cdr ,value)
+               (setf (car ,value) ,tmp
+                     (cdr ,value) (%capability ,name ,tmp)))))))
 
 (defun capabilities (&optional (terminfo *terminfo*))
   "Return a list of capabilities for terminfo that are not nil."
@@ -116,28 +116,28 @@ Returns nil for undefined capabilities."
 
 (defmacro defcap (name type index &optional docstring)
   "Along with defining the capability information:
-name 
+name
 type: boolean integer or string
 index
 defcap automaticlly defines and exports a symbol-macro
 that calls the capability from *terminfo*."
   (let ((thing (ecase type              ; indicates the accessor into the terminfo structure
-		 (boolean 'terminfo-booleans)
-		 (integer 'terminfo-numbers)
-		 (string 'terminfo-strings)))
-	(symbol (intern (string name) "KEYWORD")))
+                 (boolean 'terminfo-booleans)
+                 (integer 'terminfo-numbers)
+                 (string 'terminfo-strings)))
+        (symbol (intern (string name) "KEYWORD")))
     `(progn
        (eval-when (:compile-toplevel)
-	 ;; Mark capability as valid for the compiler-macro; needed when
-	 ;; compiling TPUTS.  If there's already a value present, leave
-	 ;; it alone, else just put any non-NIL value there; it'll get
-	 ;; fixed up when the file is loaded.
-	 (setf (gethash ,symbol *capabilities*)
-	       (gethash ,symbol *capabilities* t)))
+         ;; Mark capability as valid for the compiler-macro; needed when
+         ;; compiling TPUTS.  If there's already a value present, leave
+         ;; it alone, else just put any non-NIL value there; it'll get
+         ;; fixed up when the file is loaded.
+         (setf (gethash ,symbol *capabilities*)
+               (gethash ,symbol *capabilities* t)))
        (setf (gethash ,symbol *capabilities*) (cons #',thing ,index))
        (define-symbol-macro ,name (capability ,symbol *terminfo*))
        ,(when docstring
-	  `(setf (documentation ',name 'variable) ,docstring))
+          `(setf (documentation ',name 'variable) ,docstring))
        (export ',name "TERMINFO"))))
 
 (defcap auto-left-margin boolean 0)
@@ -646,11 +646,11 @@ that calls the capability from *terminfo*."
 (defun load-terminfo (name)
   (let ((name (concatenate 'string #-darwin (string (char name 0))
                            #+darwin (format nil "~X" (char-code (char-name 0)))
-			   "/" name)))
+                           "/" name)))
     (dolist (path (list* (merge-pathnames
                           (make-pathname :directory '(:relative ".terminfo"))
                           (user-homedir-pathname))
-			 *terminfo-directories*))
+                         *terminfo-directories*))
       (with-open-file (stream (merge-pathnames name path)
                               :direction :input
                               :element-type '(unsigned-byte 8)
@@ -714,41 +714,41 @@ that calls the capability from *terminfo*."
 
 (defun xform (value format flags width precision)
   (let ((temp (make-array 8 :element-type 'character :fill-pointer 0
-			  :adjustable t)))
+                          :adjustable t)))
     (flet ((shift (n c sign)
-	     (let ((len (length temp)) (s 0))
-	       (when (and sign (> len 0) (char= (char temp 0) #\-))
-		 (setq len (1- len) s 1))
-	       (when (> (+ len n s) (array-dimension temp 0))
-		 (adjust-array temp (+ len n 5)))
-	       (incf (fill-pointer temp) n)
-	       (replace temp temp
-			:start1 (+ n s) :start2 s :end2 (+ s len))
-	       (fill temp c :start s :end (+ n s)))))
+             (let ((len (length temp)) (s 0))
+               (when (and sign (> len 0) (char= (char temp 0) #\-))
+                 (setq len (1- len) s 1))
+               (when (> (+ len n s) (array-dimension temp 0))
+                 (adjust-array temp (+ len n 5)))
+               (incf (fill-pointer temp) n)
+               (replace temp temp
+                        :start1 (+ n s) :start2 s :end2 (+ s len))
+               (fill temp c :start s :end (+ n s)))))
       (format temp (ecase format
-		     (#\d "~D") (#\o "~O") (#\x "~(~X~)") (#\X "~:@(~X~)")
-		     (#\s "~A"))
-	      value)
+                     (#\d "~D") (#\o "~O") (#\x "~(~X~)") (#\X "~:@(~X~)")
+                     (#\s "~A"))
+              value)
       (when (position format "doxX")
-	(let ((len (length temp)))
-	  (when (minusp value) (decf len))
-	  (when (< len precision) (shift (- precision len) #\0 t)))
-	(when (logbitp 0 flags)
-	  (case format
-	    (#\o (unless (char= (char temp (if (minusp value) 1 0)) #\0)
-		   (shift 1 #\0 t)))
-	    (#\x (shift 1 #\x t) (shift 1 #\0 t))
-	    (#\X (shift 1 #\X t) (shift 1 #\0 t))))
-	(unless (minusp value)
-	  (cond ((logbitp 1 flags) (shift 1 #\+ nil))
-		((logbitp 2 flags) (shift 1 #\Space nil)))))
+        (let ((len (length temp)))
+          (when (minusp value) (decf len))
+          (when (< len precision) (shift (- precision len) #\0 t)))
+        (when (logbitp 0 flags)
+          (case format
+            (#\o (unless (char= (char temp (if (minusp value) 1 0)) #\0)
+                   (shift 1 #\0 t)))
+            (#\x (shift 1 #\x t) (shift 1 #\0 t))
+            (#\X (shift 1 #\X t) (shift 1 #\0 t))))
+        (unless (minusp value)
+          (cond ((logbitp 1 flags) (shift 1 #\+ nil))
+                ((logbitp 2 flags) (shift 1 #\Space nil)))))
       (when (and (eql format #\s) (> precision 0) (> (length temp) precision))
-	(setf (fill-pointer temp) precision))
+        (setf (fill-pointer temp) precision))
       (when (< (length temp) width)
-	(if (logbitp 3 flags)
-	    (shift (- width (length temp)) #\Space nil)
-	    (dotimes (i (- width (length temp)))
-	      (vector-push-extend #\Space temp))))
+        (if (logbitp 3 flags)
+            (shift (- width (length temp)) #\Space nil)
+            (dotimes (i (- width (length temp)))
+              (vector-push-extend #\Space temp))))
       temp)))
 
 (defun skip-forward (stream flag)
@@ -757,8 +757,8 @@ that calls the capability from *terminfo*."
     (when (char= c #\%)
       (setq c (read-char stream))
       (cond ((char= c #\?) (incf level))
-	    ((char= c #\;) (when (minusp (decf level)) (return t)))
-	    ((and flag (char= c #\e) (= level 0)) (return t))))))
+            ((char= c #\;) (when (minusp (decf level)) (return t)))
+            ((and flag (char= c #\e) (= level 0)) (return t))))))
 
 (defun tparm (string &rest args)
   "Return the string representing the command and arguments."
@@ -766,193 +766,193 @@ that calls the capability from *terminfo*."
   (with-output-to-string (out)
     (with-input-from-string (in string)
       (do ((stack '()) (flags 0) (width 0) (precision 0) (number 0)
-	   (dvars (make-array 26 :element-type '(unsigned-byte 8)
-			      :initial-element 0))
-	   (svars (load-time-value
-		   (make-array 26 :element-type '(unsigned-byte 8)
-			       :initial-element 0)))
-	   (c (read-char in nil) (read-char in nil)))
-	  ((null c))
-	(cond ((char= c #\%)
-	       (setq c (read-char in) flags 0 width 0 precision 0)
-	       (tagbody
-		state0
-		  (case c
-		    (#\% (princ c out) (go terminal))
-		    (#\: (setq c (read-char in)) (go state2))
-		    (#\+ (go state1))
-		    (#\- (go state1))
-		    (#\# (go state2))
-		    (#\Space (go state2))
-		    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) (go state3))
-		    (#\d (go state5))
-		    (#\o (go state6))
-		    ((#\X #\x) (go state7))
-		    (#\s (go state8))
-		    (#\c (princ (code-char (pop stack)) out) (go terminal))
-		    (#\p (go state9))
-		    (#\P (go state10))
-		    (#\g (go state11))
-		    (#\' (go state12))
-		    (#\{ (go state13))
-		    (#\l (push (length (pop stack)) stack) (go terminal))
-		    (#\* (push (* (pop stack) (pop stack)) stack)
-			 (go terminal))
-		    (#\/ (push (let ((n (pop stack))) (/ (pop stack) n)) stack)
-			 (go terminal))
-		    (#\m (push (let ((n (pop stack))) (mod (pop stack) n))
-			       stack)
-			 (go terminal))
-		    (#\& (push (logand (pop stack) (pop stack)) stack)
-			 (go terminal))
-		    (#\| (push (logior (pop stack) (pop stack)) stack)
-			 (go terminal))
-		    (#\^ (push (logxor (pop stack) (pop stack)) stack)
-			 (go terminal))
-		    (#\= (push (if (= (pop stack) (pop stack)) 1 0) stack)
-			 (go terminal))
-		    (#\> (push (if (<= (pop stack) (pop stack)) 1 0) stack)
-			 (go terminal))
-		    (#\< (push (if (>= (pop stack) (pop stack)) 1 0) stack)
-			 (go terminal))
-		    (#\A (push (if (or (zerop (pop stack))
-				       (zerop (pop stack)))
-				   0
-				   1)
-			       stack)
-			 (go terminal))
-		    (#\O (push (if (and (zerop (pop stack))
-					(zerop (pop stack)))
-				   0
-				   1)
-			       stack)
-			 (go terminal))
-		    (#\! (push (if (zerop (pop stack)) 1 0) stack)
-			 (go terminal))
-		    (#\~ (push (logand #xFF (lognot (pop stack))) stack)
-			 (go terminal))
-		    (#\i (when args
-			   (incf (first args))
-			   (when (cdr args)
-			     (incf (second args))))
-			 (go terminal))
-		    (#\? (go state14))
-		    (#\t (go state15))
-		    (#\e (go state16))
-		    (#\; (go state17))
-		    (otherwise (error "Unknown %-control character: ~C" c)))
-		state1
-		  (let ((next (peek-char nil in nil)))
-		    (when (position next "0123456789# +-doXxs")
-		      (go state2)))
-		  (if (char= c #\+)
-		      (push (+ (pop stack) (pop stack)) stack)
-		      (push (let ((n (pop stack))) (- (pop stack) n)) stack))
-		  (go terminal)
-		state2
-		  (case c
-		    (#\# (setf flags (logior flags 1)))
-		    (#\+ (setf flags (logior flags 2)))
-		    (#\Space (setf flags (logior flags 4)))
-		    (#\- (setf flags (logior flags 8)))
-		    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
-		     (go state3))
-		    (t (go blah)))
-		  (setf c (read-char in))
-		  (go state2)
-		state3
-		  (setf width (digit-char-p c))
-		state3-loop
-		  (setf c (read-char in))
-		  (case c
-		    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
-		     (setf width (+ (* width 10) (digit-char-p c)))
-		     (go state3-loop))
-		    (#\. (setf c (read-char in)) (go state4)))
-		  (go blah)
-		state4
-		  (setf precision (digit-char-p c))
-		state4-loop
-		  (setf c (read-char in))
-		  (case c
-		    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
-		     (setf precision (+ (* precision 10) (digit-char-p c)))
-		     (go state4-loop)))
-		  (go blah)
-		blah
-		  (case c
-		    (#\d (go state5))
-		    (#\o (go state6))
-		    ((#\X #\x) (go state7))
-		    (#\s (go state8))
-		    (otherwise (error "Unknown %-control character: ~C" c)))
-		state5
-		state6
-		state7
-		state8
-		  (princ (xform (pop stack) c flags width precision) out)
-		  (go terminal)
-		state9
-		  (let* ((i (digit-char-p (read-char in)))
-			 (a (nth (1- i) args)))
-		    (etypecase a
-		      (character (push (char-code a) stack))
-		      (integer (push a stack))
-		      (string (push a stack))))
-		  (go terminal)
-		state10
-		  (let ((var (read-char in)))
-		    (cond ((char<= #\a var #\z)
-			   (setf (aref dvars (- (char-code var)
-						(char-code #\a)))
-				 (pop stack)))
-			  ((char<= #\A var #\Z)
-			   (setf (aref svars (- (char-code var)
-						(char-code #\A)))
-				 (pop stack)))
-			  (t (error "Illegal variable name: ~C" var))))
-		  (go terminal)
-		state11
-		  (let ((var (read-char in)))
-		    (cond ((char<= #\a var #\z)
-			   (push (aref dvars (- (char-code var)
-						(char-code #\a)))
-				 stack))
-			  ((char<= #\A var #\Z)
-			   (push (aref svars (- (char-code var)
-						(char-code #\A)))
-				 stack))
-			  (t (error "Illegal variable name: ~C" var))))
-		  (go terminal)
-		state12
-		  (push (char-code (read-char in)) stack)
-		  (unless (char= (read-char in) #\')
-		    (error "Invalid character constant"))
-		  (go terminal)
-		state13
-		  (setq number 0)
-		state13-loop
-		  (setq c (read-char in))
-		  (let ((n (digit-char-p c)))
-		    (cond (n (setq number (+ (* 10 number) n))
-			     (go state13-loop))
-			  ((char= c #\})
-			   (push number stack)
-			   (go terminal))))
-		  (error "Invalid integer constant")
-		state14
-		  (go terminal)
-		state15
-		  (when (/= (pop stack) 0)
-		    (go terminal))
-		  (skip-forward in t)
-		  (go terminal)
-		state16
-		  (skip-forward in nil)
-		state17
-		terminal
-		  #| that's all, folks |#))
-	      (t (princ c out)))))))
+           (dvars (make-array 26 :element-type '(unsigned-byte 8)
+                              :initial-element 0))
+           (svars (load-time-value
+                   (make-array 26 :element-type '(unsigned-byte 8)
+                               :initial-element 0)))
+           (c (read-char in nil) (read-char in nil)))
+          ((null c))
+        (cond ((char= c #\%)
+               (setq c (read-char in) flags 0 width 0 precision 0)
+               (tagbody
+                state0
+                  (case c
+                    (#\% (princ c out) (go terminal))
+                    (#\: (setq c (read-char in)) (go state2))
+                    (#\+ (go state1))
+                    (#\- (go state1))
+                    (#\# (go state2))
+                    (#\Space (go state2))
+                    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9) (go state3))
+                    (#\d (go state5))
+                    (#\o (go state6))
+                    ((#\X #\x) (go state7))
+                    (#\s (go state8))
+                    (#\c (princ (code-char (pop stack)) out) (go terminal))
+                    (#\p (go state9))
+                    (#\P (go state10))
+                    (#\g (go state11))
+                    (#\' (go state12))
+                    (#\{ (go state13))
+                    (#\l (push (length (pop stack)) stack) (go terminal))
+                    (#\* (push (* (pop stack) (pop stack)) stack)
+                         (go terminal))
+                    (#\/ (push (let ((n (pop stack))) (/ (pop stack) n)) stack)
+                         (go terminal))
+                    (#\m (push (let ((n (pop stack))) (mod (pop stack) n))
+                               stack)
+                         (go terminal))
+                    (#\& (push (logand (pop stack) (pop stack)) stack)
+                         (go terminal))
+                    (#\| (push (logior (pop stack) (pop stack)) stack)
+                         (go terminal))
+                    (#\^ (push (logxor (pop stack) (pop stack)) stack)
+                         (go terminal))
+                    (#\= (push (if (= (pop stack) (pop stack)) 1 0) stack)
+                         (go terminal))
+                    (#\> (push (if (<= (pop stack) (pop stack)) 1 0) stack)
+                         (go terminal))
+                    (#\< (push (if (>= (pop stack) (pop stack)) 1 0) stack)
+                         (go terminal))
+                    (#\A (push (if (or (zerop (pop stack))
+                                       (zerop (pop stack)))
+                                   0
+                                   1)
+                               stack)
+                         (go terminal))
+                    (#\O (push (if (and (zerop (pop stack))
+                                        (zerop (pop stack)))
+                                   0
+                                   1)
+                               stack)
+                         (go terminal))
+                    (#\! (push (if (zerop (pop stack)) 1 0) stack)
+                         (go terminal))
+                    (#\~ (push (logand #xFF (lognot (pop stack))) stack)
+                         (go terminal))
+                    (#\i (when args
+                           (incf (first args))
+                           (when (cdr args)
+                             (incf (second args))))
+                         (go terminal))
+                    (#\? (go state14))
+                    (#\t (go state15))
+                    (#\e (go state16))
+                    (#\; (go state17))
+                    (otherwise (error "Unknown %-control character: ~C" c)))
+                state1
+                  (let ((next (peek-char nil in nil)))
+                    (when (position next "0123456789# +-doXxs")
+                      (go state2)))
+                  (if (char= c #\+)
+                      (push (+ (pop stack) (pop stack)) stack)
+                      (push (let ((n (pop stack))) (- (pop stack) n)) stack))
+                  (go terminal)
+                state2
+                  (case c
+                    (#\# (setf flags (logior flags 1)))
+                    (#\+ (setf flags (logior flags 2)))
+                    (#\Space (setf flags (logior flags 4)))
+                    (#\- (setf flags (logior flags 8)))
+                    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
+                     (go state3))
+                    (t (go blah)))
+                  (setf c (read-char in))
+                  (go state2)
+                state3
+                  (setf width (digit-char-p c))
+                state3-loop
+                  (setf c (read-char in))
+                  (case c
+                    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
+                     (setf width (+ (* width 10) (digit-char-p c)))
+                     (go state3-loop))
+                    (#\. (setf c (read-char in)) (go state4)))
+                  (go blah)
+                state4
+                  (setf precision (digit-char-p c))
+                state4-loop
+                  (setf c (read-char in))
+                  (case c
+                    ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
+                     (setf precision (+ (* precision 10) (digit-char-p c)))
+                     (go state4-loop)))
+                  (go blah)
+                blah
+                  (case c
+                    (#\d (go state5))
+                    (#\o (go state6))
+                    ((#\X #\x) (go state7))
+                    (#\s (go state8))
+                    (otherwise (error "Unknown %-control character: ~C" c)))
+                state5
+                state6
+                state7
+                state8
+                  (princ (xform (pop stack) c flags width precision) out)
+                  (go terminal)
+                state9
+                  (let* ((i (digit-char-p (read-char in)))
+                         (a (nth (1- i) args)))
+                    (etypecase a
+                      (character (push (char-code a) stack))
+                      (integer (push a stack))
+                      (string (push a stack))))
+                  (go terminal)
+                state10
+                  (let ((var (read-char in)))
+                    (cond ((char<= #\a var #\z)
+                           (setf (aref dvars (- (char-code var)
+                                                (char-code #\a)))
+                                 (pop stack)))
+                          ((char<= #\A var #\Z)
+                           (setf (aref svars (- (char-code var)
+                                                (char-code #\A)))
+                                 (pop stack)))
+                          (t (error "Illegal variable name: ~C" var))))
+                  (go terminal)
+                state11
+                  (let ((var (read-char in)))
+                    (cond ((char<= #\a var #\z)
+                           (push (aref dvars (- (char-code var)
+                                                (char-code #\a)))
+                                 stack))
+                          ((char<= #\A var #\Z)
+                           (push (aref svars (- (char-code var)
+                                                (char-code #\A)))
+                                 stack))
+                          (t (error "Illegal variable name: ~C" var))))
+                  (go terminal)
+                state12
+                  (push (char-code (read-char in)) stack)
+                  (unless (char= (read-char in) #\')
+                    (error "Invalid character constant"))
+                  (go terminal)
+                state13
+                  (setq number 0)
+                state13-loop
+                  (setq c (read-char in))
+                  (let ((n (digit-char-p c)))
+                    (cond (n (setq number (+ (* 10 number) n))
+                             (go state13-loop))
+                          ((char= c #\})
+                           (push number stack)
+                           (go terminal))))
+                  (error "Invalid integer constant")
+                state14
+                  (go terminal)
+                state15
+                  (when (/= (pop stack) 0)
+                    (go terminal))
+                  (skip-forward in t)
+                  (go terminal)
+                state16
+                  (skip-forward in nil)
+                state17
+                terminal
+                  #| that's all, folks |#))
+              (t (princ c out)))))))
 
 (defgeneric stream-fileno (stream)
   (:method ((stream stream))
@@ -975,21 +975,21 @@ that calls the capability from *terminfo*."
 
 (defun stream-baud-rate (stream)
   (declare (type stream stream)
-	   (values (or null (integer 0 4000000))))
+           (values (or null (integer 0 4000000))))
   #+CMU
   (alien:with-alien ((termios (alien:struct unix:termios)))
     (declare (optimize (ext:inhibit-warnings 3)))
     (when (unix:unix-tcgetattr (stream-fileno stream) termios)
       (let ((baud (logand unix:tty-cbaud
-			  (alien:slot termios 'unix:c-cflag))))
-	(if (< baud unix::tty-cbaudex)
-	  (aref #(0 50 75 110 134 150 200 300 600 1200
-		  1800 2400 4800 9600 19200 38400)
-		baud)
-	  (aref #(57600 115200 230400 460800 500000 576000
-		  921600 1000000 1152000 1500000 2000000
-		  2500000 3000000 3500000 4000000)
-		(logxor baud unix::tty-cbaudex)))))))
+                          (alien:slot termios 'unix:c-cflag))))
+        (if (< baud unix::tty-cbaudex)
+          (aref #(0 50 75 110 134 150 200 300 600 1200
+                  1800 2400 4800 9600 19200 38400)
+                baud)
+          (aref #(57600 115200 230400 460800 500000 576000
+                  921600 1000000 1152000 1500000 2000000
+                  2500000 3000000 3500000 4000000)
+                (logxor baud unix::tty-cbaudex)))))))
 
 (defun terminal-size (&optional (stream *terminal-io*))
   (declare (type stream stream))
@@ -997,9 +997,9 @@ that calls the capability from *terminfo*."
   (alien:with-alien ((winsz (alien:struct unix:winsize)))
     (declare (optimize (ext:inhibit-warnings 3)))
     (if (unix:unix-ioctl (stream-fileno stream) unix:TIOCGWINSZ winsz)
-	(values (alien:slot winsz 'unix:ws-row)
-		(alien:slot winsz 'unix:ws-col))
-	(values nil nil))))
+        (values (alien:slot winsz 'unix:ws-row)
+                (alien:slot winsz 'unix:ws-col))
+        (values nil nil))))
 
 (defstruct padding time force line-multiplier)
 
@@ -1094,7 +1094,7 @@ and t or nil for * which indicates a multiplier for lines affected."
                                 baud-rate (affected-lines 1)
                                 (terminfo *terminfo*))
   "Print a padding definition to the stream depending
-on the capability of the terminfo data. 
+on the capability of the terminfo data.
 
 If stream is nil, the padding characters or delay time
 in ms will be returned.  If a stream is provided, the
@@ -1123,7 +1123,7 @@ sleep for the specified time."
                      (make-string null-count :initial-element pad)))))))))
 
 (defmacro tputs (string &rest args)
-  "Given a string and its arguments, compose the appropriate command 
+  "Given a string and its arguments, compose the appropriate command
 for the terminfo terminal and put it into the stream, or return
 a list of strings and delay times when stream is nil.
 Keyword arguments are passed on to the executing function, and include:
@@ -1160,21 +1160,21 @@ String must already have been operated upon by tparm if necessary."
             (push printed result)))))))
 
 (defun set-terminal (&optional name)
-  "Load the terminfo database specified, or defined per 
+  "Load the terminfo database specified, or defined per
 the TERM environment variable."
   (setf *terminfo* (load-terminfo (or name
-				      #+ccl
-				      (ccl:getenv "TERM")
-				      #+CMU
-				      (cdr (assoc "TERM" ext:*environment-list*
-						  :test #'string=))
-				      #+Allegro
-				      (sys:getenv "TERM")
-				      #+SBCL
-				      (sb-ext:posix-getenv "TERM")
+                                      #+ccl
+                                      (ccl:getenv "TERM")
+                                      #+CMU
+                                      (cdr (assoc "TERM" ext:*environment-list*
+                                                  :test #'string=))
+                                      #+Allegro
+                                      (sys:getenv "TERM")
+                                      #+SBCL
+                                      (sb-ext:posix-getenv "TERM")
                                       #+Lispworks
                                       (lispworks:environment-variable "TERM")
-				      #| if all else fails |#
-				      "dumb"))))
+                                      #| if all else fails |#
+                                      "dumb"))))
 
 (provide :terminfo)

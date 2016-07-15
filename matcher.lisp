@@ -29,17 +29,17 @@
   (let ((quoted-p nil))
     (dotimes (n (min index (length string)) quoted-p)
       (when (eql (schar string n) #\")
-	(setf quoted-p (not quoted-p))))))
+        (setf quoted-p (not quoted-p))))))
 
 (defun find-open-quote (string index)
   (when (quoted-p string index)
     (loop for n from (1- index) downto 0
-	  when (eql (schar string n) #\") return n)))
+          when (eql (schar string n) #\") return n)))
 
 (defun find-close-quote (string index)
   (when (quoted-p string index)
     (loop for n from (1+ index) below (length string)
-	  when (eql (schar string n) #\") return n)))
+          when (eql (schar string n) #\") return n)))
 
 ;;;; PARENS
 
@@ -63,38 +63,38 @@
 
 (defun find-open-paren (string index)
   (loop with count = 1
-	for n from (1- index) downto 0
-	do (incf count (paren-count-delta (schar string n)))
-	when (zerop count) return n))
+        for n from (1- index) downto 0
+        do (incf count (paren-count-delta (schar string n)))
+        when (zerop count) return n))
 
 (defun find-close-paren (string index)
   (loop with count = -1
-	for n from (1+ index) below (length string)
-	do (incf count (paren-count-delta (schar string n)))
-	when (zerop count) return n))
+        for n from (1+ index) below (length string)
+        do (incf count (paren-count-delta (schar string n)))
+        when (zerop count) return n))
 
 (defun dwim-match-parens (string index)
   (cond ((after-close-p string index)
-	 (values (find-open-paren string (1- index)) (1- index)))
-	((at-open-p string index)
-	 (values index (find-close-paren string index)))
-	(t 
-	 (values nil nil))))
+         (values (find-open-paren string (1- index)) (1- index)))
+        ((at-open-p string index)
+         (values index (find-close-paren string index)))
+        (t
+         (values nil nil))))
 
 (defun dwim-mark-parens (string index &key pre-mark post-mark)
   (multiple-value-bind (open close) (dwim-match-parens string index)
-    (values 
+    (values
      (if (and open close)
-	 (concat (subseq string 0 open)
-		 pre-mark
-		 (string (schar string open))
-		 post-mark
-		 (subseq string (1+ open) close)
-		 pre-mark
-		 (string (schar string close))
-		 post-mark
-		 (if (> (length string) (1+ close))
-		     (subseq string (1+ close))
-		     ""))
-	 string)
+         (concat (subseq string 0 open)
+                 pre-mark
+                 (string (schar string open))
+                 post-mark
+                 (subseq string (1+ open) close)
+                 pre-mark
+                 (string (schar string close))
+                 post-mark
+                 (if (> (length string) (1+ close))
+                     (subseq string (1+ close))
+                     ""))
+         string)
      open)))

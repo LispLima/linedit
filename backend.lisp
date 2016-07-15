@@ -37,21 +37,20 @@ color bolded, other options are terminal colors :BLACK, :RED, :GREEN, :YELLOW,
   (with-unique-names (an-error)
     `(let ((,an-error nil))
        (unwind-protect
-	    (handler-case (progn
-			    (backend-init ,backend)
-			    ,@forms)
-	      (error (e)
-		(setf ,an-error e)))
-	 (backend-close ,backend)
-	 (awhen ,an-error
-	   (error it))))))
+            (handler-case (progn
+                            (backend-init ,backend)
+                            ,@forms)
+              (error (e)
+                (setf ,an-error e)))
+         (backend-close ,backend)
+         (awhen ,an-error
+           (error it))))))
 
 (defmacro without-backend (backend &body forms)
   `(unwind-protect
-	(progn
-	  (backend-close ,backend)
-	  ,@forms)
+        (progn
+          (backend-close ,backend)
+          ,@forms)
      (backend-init ,backend)))
 
 (defgeneric display (backend &key prompt line point &allow-other-keys))
-
