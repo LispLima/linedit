@@ -27,7 +27,7 @@
   `(dolist (chord ',chords)
      (let ((old (gethash chord *terminal-translations*)))
        (when (and old (not (equal old ,name)))
-	 (warn "Overriding old translation ~S for ~S with ~S." old chord ,name)))
+         (warn "Overriding old translation ~S for ~S with ~S." old chord ,name)))
      (setf (gethash chord *terminal-translations*) ,name)))
 
 (deftrans "C-Space" 0)

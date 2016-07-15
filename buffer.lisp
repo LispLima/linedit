@@ -70,9 +70,9 @@
 
 (defun buffer-cycle (buffer)
   (flet ((wrap-buffer ()
-	   (unless (%buffer-prev buffer)
-	     (setf (%buffer-prev buffer) (reverse (%buffer-next buffer))
-		   (%buffer-next buffer) nil))))
+           (unless (%buffer-prev buffer)
+             (setf (%buffer-prev buffer) (reverse (%buffer-next buffer))
+                   (%buffer-next buffer) nil))))
     (wrap-buffer)
     (push (pop (%buffer-prev buffer)) (%buffer-next buffer))
     (wrap-buffer)

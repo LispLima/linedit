@@ -34,7 +34,7 @@
 
 (defun word-delimiter-p (char)
   (declare (simple-string *word-delimiters*)
-	   (character char))
+           (character char))
   (find char *word-delimiters*))
 
 (defun make-whitespace (n)
@@ -51,8 +51,8 @@
   "Start linedit debugging output to pathname, with additional
 open-args passed to `open'."
   (setf *debug* (apply #'open pathname
-		       :direction :output
-		       (append open-args '(:if-exists :append
+                       :direction :output
+                       (append open-args '(:if-exists :append
                                            :if-does-not-exist :create)))))
 
 (defun end-debug ()
@@ -73,14 +73,14 @@ open-args passed to `open'."
   (declare (simple-string string))
   (let (stack)
     (loop with last
-	  for i from 1 upto (length string)
-	  for char across string
-	  ;; KLUDGE: Deal with character literals. Not quite sure this is
-	  ;; the right and robust way to do it, though.
-	  when (and (eql #\\ char) (not (eql #\# last)))
-	  do (push #\\ stack)
-	  do (push char stack)
-	     (setf last char))
+          for i from 1 upto (length string)
+          for char across string
+          ;; KLUDGE: Deal with character literals. Not quite sure this is
+          ;; the right and robust way to do it, though.
+          when (and (eql #\\ char) (not (eql #\# last)))
+          do (push #\\ stack)
+          do (push char stack)
+             (setf last char))
     (coerce (nreverse stack) 'simple-string)))
 
 (defun eof-handler (lisp-name quit-fn)
