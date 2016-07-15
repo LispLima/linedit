@@ -32,5 +32,4 @@
    #:install-repl
    #:uninstall-repl
    #:start-debug
-   #:end-debug
-   ))
+   #:end-debug))
